@@ -1,0 +1,14 @@
+[project]
+name = "comfyui-wan22-combined-ksampler"
+version = "0.2.0"
+description = "A native combined high/low-noise KSampler for Wan 2.2."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.comfy]
+PublisherId = "local"
+DisplayName = "Wan 2.2 Combined KSampler"
+
+[tool.unittest]
+test-pattern = "test*.py"
