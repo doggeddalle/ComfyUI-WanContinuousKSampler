@@ -1,4 +1,4 @@
-# Wan 2.2 Combined KSampler
+# ComfyUI-WanContinuousKSampler
 
 A ComfyUI custom node that runs Wan 2.2 A14B's high-noise and low-noise experts as one continuous denoising pass. It preserves a single latent and sigma schedule across the handoff, reducing duplicated sampler wiring and making runs easier to validate and compare.
 
@@ -17,7 +17,7 @@ Designed for repeatable Wan 2.2 I2V and T2V workflows, including LightX2V four-s
 
 ## Installation
 
-1. Copy or clone this directory into `ComfyUI/custom_nodes/Wan22CombinedKSampler`.
+1. Copy or clone this directory into `ComfyUI/custom_nodes/ComfyUI-WanContinuousKSampler`.
 2. Restart ComfyUI.
 3. Add **Wan 2.2 Combined KSampler** from `model/sampling`.
 4. Optionally add **Wan 2.2 Live Preview** and connect it to the sampler's `live_preview` input.
