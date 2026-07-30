@@ -76,7 +76,6 @@ python -m unittest discover -s tests -v
 
 ## Notes
 
-- The original `testwan.json` workflow is preserved unchanged.
 - The known LightX2V `..._1022` LoRA unused-key warnings are expected only for that specific adapter pair; investigate other missing-key warnings.
 - Custom settings outside a distilled LoRA's training schedule are experimental.
 
