@@ -81,4 +81,4 @@ python -m unittest discover -s tests -v
 
 ## License
 
-Add the license for this repository here.
+Licensed under the [Apache License 2.0](LICENSE).

@@ -1,10 +1,14 @@
 [project]
-name = "comfyui-wan22-combined-ksampler"
+name = "comfyui-wan-continuous-ksampler"
 version = "0.2.0"
-description = "A native combined high/low-noise KSampler for Wan 2.2."
+description = "A continuous high/low-noise KSampler for Wan 2.2 in ComfyUI."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+]
 
 [tool.comfy]
 PublisherId = "local"
