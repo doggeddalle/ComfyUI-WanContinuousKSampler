@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-wan-continuous-ksampler"
-version = "0.2.0"
-description = "A continuous high/low-noise KSampler for Wan 2.2 in ComfyUI."
+version = "0.4.0"
+description = "Wan 2.2 sampling and consolidated SCAIL-2 inference tools for ComfyUI."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []
@@ -12,7 +12,7 @@ classifiers = [
 
 [tool.comfy]
 PublisherId = "local"
-DisplayName = "Wan 2.2 Combined KSampler"
+DisplayName = "Wan Sampler Toolkit"
 
 [tool.unittest]
 test-pattern = "test*.py"

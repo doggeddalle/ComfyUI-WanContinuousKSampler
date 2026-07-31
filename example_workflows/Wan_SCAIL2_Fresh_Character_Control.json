@@ -1,0 +1,1624 @@
+{
+  "id": "wan-scail2-fresh-character-control",
+  "revision": 1,
+  "last_node_id": 24,
+  "last_link_id": 32,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "VHS_LoadVideo",
+      "pos": [
+        0,
+        40
+      ],
+      "size": [
+        410,
+        360
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "meta_batch",
+          "type": "VHS_BatchManager",
+          "link": null
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            1
+          ]
+        },
+        {
+          "name": "frame_count",
+          "type": "INT",
+          "links": []
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": [
+            32
+          ]
+        },
+        {
+          "name": "video_info",
+          "type": "VHS_VIDEOINFO",
+          "links": []
+        }
+      ],
+      "title": "1 · Driving Video",
+      "properties": {
+        "cnr_id": "comfyui-videohelpersuite",
+        "ver": "8550981384301e9bc5bfea83e5c2c75258102593",
+        "Node name for S&R": "VHS_LoadVideo",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": {
+        "video": "CoarseAchingHawaiianmonkseal.mp4",
+        "force_rate": 16,
+        "custom_width": 0,
+        "custom_height": 0,
+        "frame_load_cap": 0,
+        "skip_first_frames": 0,
+        "select_every_nth": 1,
+        "format": "Wan"
+      },
+      "color": "#222",
+      "bgcolor": "#000"
+    },
+    {
+      "id": 2,
+      "type": "LoadImage",
+      "pos": [
+        0,
+        500
+      ],
+      "size": [
+        410,
+        310
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            2
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "title": "2 · Reference Character",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.24.0",
+        "Node name for S&R": "LoadImage",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "Screenshot 2026-07-26 202329.png",
+        "image"
+      ],
+      "color": "#222",
+      "bgcolor": "#000"
+    },
+    {
+      "id": 3,
+      "type": "WanSCAILMediaPrep",
+      "pos": [
+        500,
+        180
+      ],
+      "size": [
+        390,
+        330
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "pose_video",
+          "type": "IMAGE",
+          "link": 1
+        },
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "pose_video",
+          "type": "IMAGE",
+          "links": [
+            14
+          ]
+        },
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "links": [
+            9,
+            13
+          ]
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "links": [
+            28
+          ]
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "links": [
+            29
+          ]
+        },
+        {
+          "name": "diagnostics",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "title": "Prepare Full SCAIL Media Batch",
+      "properties": {
+        "cnr_id": "comfyui-wan-continuous-ksampler",
+        "ver": "0.4.0",
+        "Node name for S&R": "WanSCAILMediaPrep"
+      },
+      "widgets_values": [
+        640,
+        960,
+        "lanczos",
+        "center crop",
+        "stretch"
+      ]
+    },
+    {
+      "id": 4,
+      "type": "DiffusionModelLoaderKJ",
+      "pos": [
+        940,
+        40
+      ],
+      "size": [
+        470,
+        190
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "localized_name": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-kjnodes",
+        "ver": "1.4.4",
+        "Node name for S&R": "DiffusionModelLoaderKJ",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "wan2.1_14B_SCAIL_2_fp8_scaled.safetensors",
+        "default",
+        "default",
+        false,
+        "auto",
+        true
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "title": "SCAIL-2 Diffusion Model"
+    },
+    {
+      "id": 5,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        940,
+        270
+      ],
+      "size": [
+        470,
+        120
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            4
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.24.0",
+        "Node name for S&R": "LoraLoaderModelOnly",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "wan/experiment/lightx2v_I2V_14B_480p_cfg_step_distill_rank128_bf16.safetensors",
+        1
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "title": "LightX2V Distillation LoRA"
+    },
+    {
+      "id": 6,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        940,
+        430
+      ],
+      "size": [
+        470,
+        120
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            5
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.24.0",
+        "Node name for S&R": "LoraLoaderModelOnly",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "wan22/Wan21_PusaV1_LoRA_14B_rank512_bf16.safetensors",
+        1
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "title": "PUSA Motion / Consistency LoRA"
+    },
+    {
+      "id": 7,
+      "type": "ModelSamplingSD3",
+      "pos": [
+        940,
+        590
+      ],
+      "size": [
+        330,
+        90
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 5
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            19
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.24.0",
+        "Node name for S&R": "ModelSamplingSD3",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": 5,
+      "color": "#223",
+      "bgcolor": "#335",
+      "title": "Model Sampling · Shift 5"
+    },
+    {
+      "id": 8,
+      "type": "VAELoader",
+      "pos": [
+        940,
+        730
+      ],
+      "size": [
+        470,
+        80
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "localized_name": "VAE",
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            22
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.24.1",
+        "Node name for S&R": "VAELoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": "wan_2.1_vae.safetensors",
+      "color": "#322",
+      "bgcolor": "#533",
+      "title": "Wan VAE"
+    },
+    {
+      "id": 9,
+      "type": "CLIPLoader",
+      "pos": [
+        940,
+        870
+      ],
+      "size": [
+        470,
+        100
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "localized_name": "CLIP",
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            6,
+            7
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.24.0",
+        "Node name for S&R": "CLIPLoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+        "wan",
+        "default"
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "title": "Wan Text Encoder"
+    },
+    {
+      "id": 10,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1480,
+        40
+      ],
+      "size": [
+        520,
+        260
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 6
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            20
+          ]
+        }
+      ],
+      "title": "Positive Prompt",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.24.0",
+        "Node name for S&R": "CLIPTextEncode",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": "cinematic character performance, preserve the reference subject's identity, face, hair, clothing, body proportions and fine details; follow the driving video's pose, timing, expression and camera motion; natural movement, temporal consistency, coherent lighting, detailed textures, stable background",
+      "color": "#222",
+      "bgcolor": "#000"
+    },
+    {
+      "id": 11,
+      "type": "CLIPTextEncode",
+      "pos": [
+        1480,
+        340
+      ],
+      "size": [
+        520,
+        250
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "CONDITIONING",
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            21
+          ]
+        }
+      ],
+      "title": "Negative Prompt",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.24.0",
+        "Node name for S&R": "CLIPTextEncode",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": "oversaturated, overexposed, static, still image, blurry, subtitles, watermark, text, painting, low quality, jpeg artifacts, deformed hands, deformed face, fused fingers, extra fingers, extra limbs, duplicate people, identity drift, inconsistent clothing, flicker, jitter, warped background",
+      "color": "#322",
+      "bgcolor": "#533"
+    },
+    {
+      "id": 12,
+      "type": "CLIPVisionLoader",
+      "pos": [
+        1480,
+        650
+      ],
+      "size": [
+        470,
+        90
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "localized_name": "CLIP_VISION",
+          "name": "CLIP_VISION",
+          "type": "CLIP_VISION",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.24.0",
+        "Node name for S&R": "CLIPVisionLoader",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": "clip_vision_h.safetensors",
+      "color": "#233",
+      "bgcolor": "#355",
+      "title": "CLIP Vision"
+    },
+    {
+      "id": 13,
+      "type": "CLIPVisionEncode",
+      "pos": [
+        1480,
+        790
+      ],
+      "size": [
+        360,
+        110
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip_vision",
+          "type": "CLIP_VISION",
+          "link": 8
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 9
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "CLIP_VISION_OUTPUT",
+          "name": "CLIP_VISION_OUTPUT",
+          "type": "CLIP_VISION_OUTPUT",
+          "links": [
+            27
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.24.0",
+        "Node name for S&R": "CLIPVisionEncode",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": "none",
+      "color": "#233",
+      "bgcolor": "#355",
+      "title": "Reference Vision Features"
+    },
+    {
+      "id": 14,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        1480,
+        960
+      ],
+      "size": [
+        470,
+        100
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "localized_name": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            12
+          ]
+        },
+        {
+          "localized_name": "CLIP",
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            10,
+            11
+          ]
+        },
+        {
+          "localized_name": "VAE",
+          "name": "VAE",
+          "type": "VAE",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.24.0",
+        "Node name for S&R": "CheckpointLoaderSimple",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": "sam3.1_multiplex_fp16.safetensors",
+      "color": "#223",
+      "bgcolor": "#335",
+      "title": "SAM3 Identity Model"
+    },
+    {
+      "id": 15,
+      "type": "CLIPTextEncode",
+      "pos": [
+        2050,
+        40
+      ],
+      "size": [
+        420,
+        170
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "CONDITIONING",
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            15
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.24.0",
+        "Node name for S&R": "CLIPTextEncode",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": "person",
+      "title": "SAM3 Reference Prompt"
+    },
+    {
+      "id": 16,
+      "type": "CLIPTextEncode",
+      "pos": [
+        2050,
+        250
+      ],
+      "size": [
+        420,
+        170
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "CONDITIONING",
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            16
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.24.0",
+        "Node name for S&R": "CLIPTextEncode",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": "person",
+      "title": "SAM3 Driving Prompt"
+    },
+    {
+      "id": 17,
+      "type": "WanSCAILIdentityControl",
+      "pos": [
+        2050,
+        500
+      ],
+      "size": [
+        540,
+        790
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "sam3_model",
+          "type": "MODEL",
+          "link": 12
+        },
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 13
+        },
+        {
+          "name": "pose_video",
+          "type": "IMAGE",
+          "link": 14
+        },
+        {
+          "name": "reference_conditioning",
+          "type": "CONDITIONING",
+          "link": 15
+        },
+        {
+          "name": "driving_conditioning",
+          "type": "CONDITIONING",
+          "link": 16
+        }
+      ],
+      "outputs": [
+        {
+          "name": "pose_video",
+          "type": "IMAGE",
+          "links": [
+            23
+          ]
+        },
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "links": [
+            25
+          ]
+        },
+        {
+          "name": "pose_video_mask",
+          "type": "IMAGE",
+          "links": [
+            17,
+            24
+          ]
+        },
+        {
+          "name": "reference_image_mask",
+          "type": "IMAGE",
+          "links": [
+            18,
+            26
+          ]
+        },
+        {
+          "name": "identity_count",
+          "type": "INT",
+          "links": []
+        },
+        {
+          "name": "diagnostics",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "title": "SCAIL-2 Identity Control · Canvas + Masks",
+      "properties": {
+        "cnr_id": "comfyui-wan-continuous-ksampler",
+        "ver": "0.4.0",
+        "Node name for S&R": "WanSCAILIdentityControl"
+      },
+      "widgets_values": [
+        2,
+        true,
+        0.5,
+        6,
+        1,
+        "0",
+        "none",
+        true,
+        "{\"reference\":[],\"driving\":[]}"
+      ]
+    },
+    {
+      "id": 18,
+      "type": "PreviewAnimation",
+      "pos": [
+        2660,
+        370
+      ],
+      "size": [
+        400,
+        330
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 17
+        },
+        {
+          "name": "masks",
+          "type": "MASK",
+          "link": null
+        }
+      ],
+      "outputs": [],
+      "title": "Lightweight Driving Mask Preview",
+      "properties": {
+        "cnr_id": "comfyui-kjnodes",
+        "Node name for S&R": "PreviewAnimation"
+      },
+      "widgets_values": [
+        16
+      ]
+    },
+    {
+      "id": 19,
+      "type": "PreviewAnimation",
+      "pos": [
+        2660,
+        760
+      ],
+      "size": [
+        400,
+        330
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 18
+        },
+        {
+          "name": "masks",
+          "type": "MASK",
+          "link": null
+        }
+      ],
+      "outputs": [],
+      "title": "Lightweight Reference Mask Preview",
+      "properties": {
+        "cnr_id": "comfyui-kjnodes",
+        "Node name for S&R": "PreviewAnimation"
+      },
+      "widgets_values": [
+        1
+      ]
+    },
+    {
+      "id": 20,
+      "type": "WanSCAILAutoExtendSampler",
+      "pos": [
+        3090,
+        40
+      ],
+      "size": [
+        470,
+        940
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 19
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 20
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 21
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 22
+        },
+        {
+          "name": "pose_video",
+          "type": "IMAGE",
+          "link": 23
+        },
+        {
+          "name": "pose_video_mask",
+          "type": "IMAGE",
+          "link": 24
+        },
+        {
+          "name": "reference_image",
+          "type": "IMAGE",
+          "link": 25
+        },
+        {
+          "name": "reference_image_mask",
+          "type": "IMAGE",
+          "link": 26
+        },
+        {
+          "name": "clip_vision_output",
+          "type": "CLIP_VISION_OUTPUT",
+          "link": 27
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "link": 28,
+          "widget": {
+            "name": "width"
+          }
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "link": 29,
+          "widget": {
+            "name": "height"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            30,
+            31
+          ]
+        },
+        {
+          "name": "frame_count",
+          "type": "INT",
+          "links": []
+        },
+        {
+          "name": "diagnostics",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "title": "Wan SCAIL-2 · Full Driving Video",
+      "properties": {
+        "cnr_id": "comfyui-wan-continuous-ksampler",
+        "ver": "0.4.0",
+        "Node name for S&R": "WanSCAILAutoExtendSampler"
+      },
+      "widgets_values": [
+        640,
+        960,
+        7,
+        "fixed",
+        6,
+        1,
+        "euler",
+        "simple",
+        1,
+        5,
+        81,
+        5,
+        0,
+        "fixed",
+        "normal",
+        true,
+        1,
+        true,
+        1,
+        0,
+        1,
+        true
+      ]
+    },
+    {
+      "id": 21,
+      "type": "PreviewAnimation",
+      "pos": [
+        3650,
+        500
+      ],
+      "size": [
+        400,
+        330
+      ],
+      "flags": {},
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 30
+        },
+        {
+          "name": "masks",
+          "type": "MASK",
+          "link": null
+        }
+      ],
+      "outputs": [],
+      "title": "Lightweight Generated Video Preview",
+      "properties": {
+        "cnr_id": "comfyui-kjnodes",
+        "Node name for S&R": "PreviewAnimation"
+      },
+      "widgets_values": [
+        16
+      ]
+    },
+    {
+      "id": 22,
+      "type": "VHS_VideoCombine",
+      "pos": [
+        3650,
+        40
+      ],
+      "size": [
+        430,
+        390
+      ],
+      "flags": {},
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 31
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 32
+        },
+        {
+          "name": "meta_batch",
+          "type": "VHS_BatchManager",
+          "link": null
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Filenames",
+          "type": "VHS_FILENAMES",
+          "links": []
+        }
+      ],
+      "title": "Final Video · Original Audio",
+      "properties": {
+        "cnr_id": "comfyui-videohelpersuite",
+        "ver": "1.7.9",
+        "Node name for S&R": "VHS_VideoCombine",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": {
+        "frame_rate": 16,
+        "loop_count": 0,
+        "filename_prefix": "wan/scail2/%date:yyyy_MM_dd%/SCAIL2_Character_",
+        "format": "video/h264-mp4",
+        "pix_fmt": "yuv420p",
+        "crf": 19,
+        "save_metadata": true,
+        "trim_to_audio": false,
+        "pingpong": false,
+        "save_output": true
+      },
+      "color": "#222",
+      "bgcolor": "#000"
+    },
+    {
+      "id": 23,
+      "type": "MarkdownNote",
+      "pos": [
+        2050,
+        1330
+      ],
+      "size": [
+        540,
+        290
+      ],
+      "flags": {},
+      "order": 22,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Identity Mask Guide",
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": "# Verify identity masks before sampling\n\nPress the play button on **SCAIL-2 Identity Control**, then inspect both lightweight KJNodes animated previews. The default selects person index `0` for dependable single-character replacement.\n\nIf it selects the wrong person, draw matching points or boxes on the reference and driving canvases. Clear `object_indices` only when you deliberately provide matching references for multiple identities.",
+      "color": "#781414",
+      "bgcolor": "#640000",
+      "shape": 2
+    },
+    {
+      "id": 24,
+      "type": "MarkdownNote",
+      "pos": [
+        3090,
+        1020
+      ],
+      "size": [
+        470,
+        300
+      ],
+      "flags": {},
+      "order": 23,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "Proven SCAIL Preset",
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.5.2",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": "# Proven SCAIL preset\n\n- 640 × 960 at 16 fps\n- 6 steps, CFG 1, Euler / simple, shift 5\n- 81-frame windows with 5-frame overlap\n- Fixed seed and internal Reinhard color stabilization\n\nUse `tiled` decode if VAE decode runs out of VRAM. Replacement mode is controlled in the consolidated identity node.",
+      "color": "#781414",
+      "bgcolor": "#640000",
+      "shape": 2
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      3,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      2,
+      0,
+      3,
+      1,
+      "IMAGE"
+    ],
+    [
+      3,
+      4,
+      0,
+      5,
+      0,
+      "MODEL"
+    ],
+    [
+      4,
+      5,
+      0,
+      6,
+      0,
+      "MODEL"
+    ],
+    [
+      5,
+      6,
+      0,
+      7,
+      0,
+      "MODEL"
+    ],
+    [
+      6,
+      9,
+      0,
+      10,
+      0,
+      "CLIP"
+    ],
+    [
+      7,
+      9,
+      0,
+      11,
+      0,
+      "CLIP"
+    ],
+    [
+      8,
+      12,
+      0,
+      13,
+      0,
+      "CLIP_VISION"
+    ],
+    [
+      9,
+      3,
+      1,
+      13,
+      1,
+      "IMAGE"
+    ],
+    [
+      10,
+      14,
+      1,
+      15,
+      0,
+      "CLIP"
+    ],
+    [
+      11,
+      14,
+      1,
+      16,
+      0,
+      "CLIP"
+    ],
+    [
+      12,
+      14,
+      0,
+      17,
+      0,
+      "MODEL"
+    ],
+    [
+      13,
+      3,
+      1,
+      17,
+      1,
+      "IMAGE"
+    ],
+    [
+      14,
+      3,
+      0,
+      17,
+      2,
+      "IMAGE"
+    ],
+    [
+      15,
+      15,
+      0,
+      17,
+      3,
+      "CONDITIONING"
+    ],
+    [
+      16,
+      16,
+      0,
+      17,
+      4,
+      "CONDITIONING"
+    ],
+    [
+      17,
+      17,
+      2,
+      18,
+      0,
+      "IMAGE"
+    ],
+    [
+      18,
+      17,
+      3,
+      19,
+      0,
+      "IMAGE"
+    ],
+    [
+      19,
+      7,
+      0,
+      20,
+      0,
+      "MODEL"
+    ],
+    [
+      20,
+      10,
+      0,
+      20,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      21,
+      11,
+      0,
+      20,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      22,
+      8,
+      0,
+      20,
+      3,
+      "VAE"
+    ],
+    [
+      23,
+      17,
+      0,
+      20,
+      4,
+      "IMAGE"
+    ],
+    [
+      24,
+      17,
+      2,
+      20,
+      5,
+      "IMAGE"
+    ],
+    [
+      25,
+      17,
+      1,
+      20,
+      6,
+      "IMAGE"
+    ],
+    [
+      26,
+      17,
+      3,
+      20,
+      7,
+      "IMAGE"
+    ],
+    [
+      27,
+      13,
+      0,
+      20,
+      8,
+      "CLIP_VISION_OUTPUT"
+    ],
+    [
+      28,
+      3,
+      2,
+      20,
+      9,
+      "INT"
+    ],
+    [
+      29,
+      3,
+      3,
+      20,
+      10,
+      "INT"
+    ],
+    [
+      30,
+      20,
+      0,
+      21,
+      0,
+      "IMAGE"
+    ],
+    [
+      31,
+      20,
+      0,
+      22,
+      0,
+      "IMAGE"
+    ],
+    [
+      32,
+      1,
+      2,
+      22,
+      1,
+      "AUDIO"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "1 · Inputs and geometry",
+      "bounding": [
+        -50,
+        -20,
+        950,
+        930
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "2 · SCAIL, VAE and text models",
+      "bounding": [
+        900,
+        -20,
+        550,
+        1120
+      ],
+      "color": "#8a6f3f",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "3 · Prompt and identity control",
+      "bounding": [
+        1440,
+        -20,
+        1160,
+        1680
+      ],
+      "color": "#5c7f56",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 4,
+      "title": "4 · Lightweight mask previews",
+      "bounding": [
+        2620,
+        300,
+        470,
+        830
+      ],
+      "color": "#8a4f65",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 5,
+      "title": "5 · Full-video SCAIL generation",
+      "bounding": [
+        3050,
+        -20,
+        550,
+        1380
+      ],
+      "color": "#775b9e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 6,
+      "title": "6 · Preview and save",
+      "bounding": [
+        3610,
+        -20,
+        520,
+        940
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.78,
+      "offset": [
+        160,
+        120
+      ]
+    },
+    "frontendVersion": "1.45.20",
+    "linkExtensions": [],
+    "reroutes": []
+  },
+  "version": 0.4
+}

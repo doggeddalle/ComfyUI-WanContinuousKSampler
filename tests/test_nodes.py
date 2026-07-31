@@ -12,6 +12,7 @@ import unittest
 from unittest import mock
 
 import torch
+import torch.nn.functional as F
 
 
 class _Port:
@@ -20,7 +21,10 @@ class _Port:
         return {"name": name, **kwargs}
 
     @classmethod
-    def Output(cls, **kwargs):
+    def Output(cls, name=None, **kwargs):
+        if name is not None:
+            kwargs.setdefault("name", name)
+            kwargs.setdefault("display_name", name)
         return kwargs
 
 
@@ -31,8 +35,12 @@ class _CustomPort:
     def Input(self, name, **kwargs):
         return {"name": name, "type": self.io_type, **kwargs}
 
-    def Output(self, **kwargs):
-        return {"type": self.io_type, **kwargs}
+    def Output(self, name=None, **kwargs):
+        output = {"type": self.io_type, **kwargs}
+        if name is not None:
+            output.setdefault("name", name)
+            output.setdefault("display_name", name)
+        return output
 
 
 class _Schema:
@@ -41,8 +49,10 @@ class _Schema:
 
 
 class _NodeOutput:
-    def __init__(self, *values):
+    def __init__(self, *values, ui=None):
         self.result = values
+        self.args = values
+        self.ui = ui
 
 
 class _IO:
@@ -56,6 +66,11 @@ class _IO:
     Float = _Port
     Combo = _Port
     String = _Port
+    Boolean = _Port
+    Image = _Port
+    Mask = _Port
+    Vae = _Port
+    ClipVisionOutput = _Port
     Custom = _CustomPort
     Hidden = types.SimpleNamespace(unique_id="UNIQUE_ID")
 
@@ -66,6 +81,10 @@ def _install_runtime_stubs() -> None:
     samplers = types.ModuleType("comfy.samplers")
     utils = types.ModuleType("comfy.utils")
     nested_tensor = types.ModuleType("comfy.nested_tensor")
+    model_management = types.ModuleType("comfy.model_management")
+    ldm = types.ModuleType("comfy.ldm")
+    sam3 = types.ModuleType("comfy.ldm.sam3")
+    tracker = types.ModuleType("comfy.ldm.sam3.tracker")
 
     sample.fix_empty_latent_channels = lambda _model, value, *_ratios: value
     sample.prepare_noise = lambda value, _seed, _batch=None: torch.ones_like(value)
@@ -86,6 +105,10 @@ def _install_runtime_stubs() -> None:
         1.0, 0.0, steps + 1
     )
     utils.PROGRESS_BAR_ENABLED = True
+    utils.common_upscale = lambda value, width, height, _method, _crop=None, **_kwargs: F.interpolate(
+        value, size=(height, width), mode="nearest"
+    )
+    utils.unpack_latents = lambda value, _shapes: value
 
     class ProgressBar:
         def __init__(self, total):
@@ -94,16 +117,40 @@ def _install_runtime_stubs() -> None:
         def update_absolute(self, _value, _total=None, _preview=None):
             return None
 
+        def update(self, _value):
+            return None
+
     utils.ProgressBar = ProgressBar
     nested_tensor.NestedTensor = lambda tensors: tensors
+    model_management.throw_exception_if_processing_interrupted = lambda: None
+    model_management.intermediate_device = lambda: torch.device("cpu")
+    model_management.intermediate_dtype = lambda: torch.float32
+    model_management.get_torch_device = lambda: torch.device("cpu")
+    model_management.load_model_gpu = lambda _model: None
+    tracker.unpack_masks = lambda packed: packed
 
     comfy.sample = sample
     comfy.samplers = samplers
     comfy.utils = utils
     comfy.nested_tensor = nested_tensor
+    comfy.model_management = model_management
+    comfy.ldm = ldm
+    ldm.sam3 = sam3
+    sam3.tracker = tracker
 
     preview = types.ModuleType("latent_preview")
-    preview.prepare_callback = lambda _model, _steps: lambda *_args: None
+    preview.prepare_callback = lambda _model, _steps, _x0=None: lambda *_args: None
+
+    node_helpers = types.ModuleType("node_helpers")
+    node_helpers.conditioning_set_values = (
+        lambda conditioning, _values, append=False: conditioning
+    )
+    node_helpers.conditioning_set_values_with_timestep_range = (
+        lambda conditioning, _values, _start, _end: conditioning
+    )
+
+    folder_paths = types.ModuleType("folder_paths")
+    folder_paths.get_temp_directory = lambda: str(ROOT / "tests" / "_temp")
 
     latest = types.ModuleType("comfy_api.latest")
     latest.ComfyExtension = object
@@ -118,7 +165,13 @@ def _install_runtime_stubs() -> None:
             "comfy.samplers": samplers,
             "comfy.utils": utils,
             "comfy.nested_tensor": nested_tensor,
+            "comfy.model_management": model_management,
+            "comfy.ldm": ldm,
+            "comfy.ldm.sam3": sam3,
+            "comfy.ldm.sam3.tracker": tracker,
             "latent_preview": preview,
+            "node_helpers": node_helpers,
+            "folder_paths": folder_paths,
             "comfy_api": comfy_api,
             "comfy_api.latest": latest,
         }
@@ -130,6 +183,9 @@ _install_runtime_stubs()
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import nodes as wan  # noqa: E402
+import scail_core as core  # noqa: E402
+import scail_identity as identity  # noqa: E402
+import scail_nodes as scail  # noqa: E402
 
 
 class _Sampling:
@@ -848,6 +904,279 @@ class Wan22CombinedKSamplerTests(unittest.TestCase):
             "torch.cuda.synchronize",
         )
         for token in forbidden:
+            self.assertNotIn(token, source)
+
+
+class WanSCAILAutoExtendSamplerTests(unittest.TestCase):
+    def test_chunk_plan_matches_scail_temporal_contract(self):
+        self.assertEqual(
+            scail.plan_scail_chunks(81).chunk_lengths,
+            (81,),
+        )
+        self.assertEqual(
+            scail.plan_scail_chunks(157).chunk_lengths,
+            (81, 81),
+        )
+        plan = scail.plan_scail_chunks(121)
+        self.assertEqual((plan.effective_frames, plan.chunk_lengths), (121, (81, 45)))
+
+        trimmed = scail.plan_scail_chunks(160)
+        self.assertEqual(
+            (trimmed.effective_frames, trimmed.dropped_tail_frames, trimmed.chunk_lengths),
+            (157, 3, (81, 81)),
+        )
+        capped = scail.plan_scail_chunks(500, max_frames=100)
+        self.assertEqual(
+            (capped.requested_frames, capped.effective_frames, capped.chunk_lengths),
+            (100, 97, (81, 21)),
+        )
+
+    def test_chunk_plan_rejects_invalid_lengths(self):
+        for kwargs, message in (
+            ({"frame_count": 0}, "at least one frame"),
+            ({"frame_count": 81, "chunk_length": 80}, "4n\\+1"),
+            ({"frame_count": 81, "overlap": 4}, "4n\\+1"),
+            (
+                {"frame_count": 81, "chunk_length": 81, "overlap": 81},
+                "must be smaller",
+            ),
+        ):
+            with self.subTest(kwargs=kwargs), self.assertRaisesRegex(ValueError, message):
+                scail.plan_scail_chunks(**kwargs)
+
+    def test_scheduler_matches_basic_scheduler_contract(self):
+        sampling = _Sampling(5.0)
+
+        def calculate_sigmas(received, scheduler, steps):
+            self.assertIs(received, sampling)
+            self.assertEqual((scheduler, steps), ("simple", 16))
+            return torch.linspace(2.0, 0.0, 17)
+
+        with mock.patch.object(
+            scail.comfy.samplers,
+            "calculate_sigmas",
+            side_effect=calculate_sigmas,
+        ):
+            sigmas = scail.build_scail_sigmas(sampling, "simple", 8, 0.5)
+
+        self.assertEqual(sigmas.shape, (9,))
+        self.assertAlmostEqual(float(sigmas[0]), 1.0)
+        self.assertEqual(float(sigmas[-1]), 0.0)
+
+    def test_auto_extend_executes_and_stitches_workflow_equivalent_chunks(self):
+        calls = {"condition": [], "seeds": [], "color": 0}
+
+        def fake_prepare(**kwargs):
+            calls["condition"].append(kwargs)
+            length = kwargs["length"]
+            previous = kwargs["previous_frames"]
+            adjusted = kwargs["video_frame_offset"]
+            if previous is not None:
+                adjusted = max(0, adjusted - previous.shape[0])
+            latent = {
+                "samples": torch.zeros(
+                    (1, 16, ((length - 1) // 4) + 1, 1, 1)
+                )
+            }
+            return "pos", "neg", latent, adjusted + length
+
+        def fake_sample(**kwargs):
+            calls["seeds"].append(kwargs["seed"])
+            return kwargs["latent"]
+
+        def fake_color(image_target, _image_reference, _strength):
+            calls["color"] += 1
+            return image_target
+
+        class FakeVAE:
+            def decode(self, samples):
+                frames = (samples.shape[2] - 1) * 4 + 1
+                return torch.zeros((frames, 2, 2, 3))
+
+            def decode_tiled(self, _samples):
+                raise AssertionError("Normal decode was selected.")
+
+        model = _Model(5.0)
+        pose = torch.zeros((121, 4, 4, 3))
+        mask = torch.zeros_like(pose)
+        with (
+            mock.patch.object(scail, "prepare_scail_window", side_effect=fake_prepare),
+            mock.patch.object(scail, "sample_scail_window", side_effect=fake_sample),
+            mock.patch.object(scail, "reinhard_color_transfer", side_effect=fake_color),
+            mock.patch.object(
+                scail.comfy.samplers,
+                "calculate_sigmas",
+                return_value=torch.linspace(1.0, 0.0, 9),
+            ),
+            mock.patch.object(
+                scail.comfy.samplers,
+                "sampler_object",
+                return_value="euler-sampler",
+            ),
+        ):
+            output = scail.WanSCAILAutoExtendSampler.execute(
+                model=model,
+                positive="positive",
+                negative="negative",
+                vae=FakeVAE(),
+                pose_video=pose,
+                pose_video_mask=mask,
+                width=512,
+                height=896,
+                seed=123,
+                steps=6,
+                cfg=1.0,
+                sampler_name="euler",
+                scheduler="simple",
+                denoise=1.0,
+                expected_shift=5.0,
+                chunk_length=81,
+                overlap=5,
+                max_frames=0,
+                seed_mode=scail.SEED_FIXED,
+                decode_mode=scail.DECODE_NORMAL,
+                color_transfer=True,
+                color_transfer_strength=1.0,
+                replacement_mode=True,
+                pose_strength=1.0,
+                pose_start=0.0,
+                pose_end=1.0,
+                add_noise=True,
+            )
+
+        images, frame_count, diagnostics = output.result
+        self.assertEqual((images.shape[0], frame_count), (121, 121))
+        self.assertEqual([call["length"] for call in calls["condition"]], [81, 45])
+        self.assertIsNone(calls["condition"][0]["previous_frames"])
+        self.assertEqual(calls["condition"][1]["previous_frames"].shape[0], 5)
+        self.assertEqual(calls["seeds"], [123, 123])
+        self.assertEqual(calls["color"], 1)
+        self.assertIn("chunks [81,45] overlap 5", diagnostics)
+        self.assertIn("6 steps euler/simple", diagnostics)
+        self.assertIn("shift 5", diagnostics)
+
+    def test_short_segmentation_mask_fails_before_sampling(self):
+        with self.assertRaisesRegex(ValueError, "fewer frames"):
+            scail.WanSCAILAutoExtendSampler.execute(
+                model=_Model(5.0),
+                positive=None,
+                negative=None,
+                vae=None,
+                pose_video=torch.zeros((81, 2, 2, 3)),
+                pose_video_mask=torch.zeros((77, 2, 2, 3)),
+                width=512,
+                height=896,
+                seed=0,
+                steps=6,
+                cfg=1.0,
+                sampler_name="euler",
+                scheduler="simple",
+                denoise=1.0,
+                expected_shift=5.0,
+                chunk_length=81,
+                overlap=5,
+                max_frames=0,
+                seed_mode=scail.SEED_FIXED,
+                decode_mode=scail.DECODE_NORMAL,
+                color_transfer=True,
+                color_transfer_strength=1.0,
+                replacement_mode=True,
+                pose_strength=1.0,
+                pose_start=0.0,
+                pose_end=1.0,
+                add_noise=True,
+            )
+
+    def test_scail_v3_schema(self):
+        schema = scail.WanSCAILAutoExtendSampler.define_schema()
+        self.assertEqual(schema.node_id, "WanSCAILAutoExtendSampler")
+        self.assertEqual(schema.category, "model/sampling/wan")
+        self.assertEqual(
+            [item["display_name"] for item in schema.outputs],
+            ["images", "frame_count", "diagnostics"],
+        )
+        inputs = {item["name"]: item for item in schema.inputs}
+        self.assertEqual(inputs["steps"]["default"], 6)
+        self.assertEqual(inputs["chunk_length"]["default"], 81)
+        self.assertEqual(inputs["overlap"]["default"], 5)
+        self.assertEqual(inputs["seed_mode"]["default"], scail.SEED_FIXED)
+
+    def test_media_prep_preserves_full_batches_and_geometry(self):
+        pose = torch.zeros((13, 10, 14, 3))
+        reference = torch.zeros((2, 8, 12, 3))
+        output = scail.WanSCAILMediaPrep.execute(
+            pose,
+            reference,
+            64,
+            96,
+            "bicubic",
+            "center crop",
+            "stretch",
+        )
+        prepared_pose, prepared_reference, width, height, diagnostics = output.result
+        self.assertEqual(prepared_pose.shape, (13, 96, 64, 3))
+        self.assertEqual(prepared_reference.shape, (2, 96, 64, 3))
+        self.assertEqual((width, height), (64, 96))
+        self.assertIn("13 frame(s)", diagnostics)
+        self.assertIn("2 view(s)", diagnostics)
+
+    def test_scail_mask_contract_and_invalid_temporal_length(self):
+        video = torch.zeros((5, 16, 24, 3))
+        video[..., 2] = 1.0
+        mask = core.extract_mask_to_28ch(video)
+        self.assertEqual(mask.shape, (1, 2, 28, 2, 3))
+        self.assertTrue(bool((mask[:, :, 3::7] == 1).all()))
+        with self.assertRaisesRegex(ValueError, "4n\\+1"):
+            core.extract_mask_to_28ch(video[:4])
+
+    def test_identity_control_preview_only_is_lightweight_and_schema_is_v3(self):
+        schema = identity.WanSCAILIdentityControl.define_schema()
+        self.assertEqual(schema.node_id, "WanSCAILIdentityControl")
+        self.assertTrue(schema.is_output_node)
+        inputs = {item["name"]: item for item in schema.inputs}
+        self.assertEqual(inputs["max_identities"]["default"], 6)
+        self.assertEqual(inputs["replacement_mode"]["default"], True)
+        reference = torch.zeros((1, 32, 32, 3))
+        pose = torch.zeros((9, 32, 32, 3))
+        with mock.patch.object(
+            identity,
+            "_save_canvas_preview",
+            return_value={"filename": "preview.png", "subfolder": "", "type": "temp"},
+        ):
+            output = identity.WanSCAILIdentityControl.execute(
+                sam3_model=object(),
+                reference_image=reference,
+                pose_video=pose,
+                refine_iterations=2,
+                auto_detect=False,
+                detection_threshold=0.5,
+                max_identities=6,
+                detect_interval=1,
+                object_indices="0",
+                sort_by="none",
+                replacement_mode=True,
+                markers='{"reference":[],"driving":[]}',
+            )
+        self.assertEqual(output.result[0].shape, pose.shape)
+        self.assertEqual(output.result[2].shape, pose.shape)
+        self.assertEqual(output.result[3].shape, reference.shape)
+        self.assertEqual(output.result[4], 0)
+        self.assertIn("preview only", output.result[5])
+        self.assertIn("reference_preview", output.ui)
+
+    def test_consolidated_scail_source_does_not_call_replaced_nodes(self):
+        source = "\n".join(
+            (ROOT / name).read_text(encoding="utf-8")
+            for name in ("scail_core.py", "scail_identity.py", "scail_nodes.py")
+        )
+        for token in (
+            "from comfy_extras.nodes_scail",
+            "import comfy_extras.nodes_scail",
+            "from comfy_extras.nodes_custom_sampler",
+            "import comfy_extras.nodes_custom_sampler",
+            "from comfy_extras.nodes_post_processing",
+            "import comfy_extras.nodes_post_processing",
+        ):
             self.assertNotIn(token, source)
 
 

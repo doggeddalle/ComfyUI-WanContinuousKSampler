@@ -1,5 +1,9 @@
 # Wan 2.2 Combined KSampler Project Report
 
+> Historical implementation report for version 0.2.0. The current version is
+> 0.4.0 and adds consolidated SCAIL-2 media preparation, identity control, and
+> full-video sampling. See `README.md` for the concise current documentation.
+
 **Reporting date:** 30 July 2026  
 **Project version:** 0.2.0  
 **Project directory:** `C:\Users\ac\Documents\Codex\wan`  
